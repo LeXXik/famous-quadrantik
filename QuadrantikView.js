@@ -20,16 +20,35 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+/**
+ * Quadrantik View class for Famo.us framework
+ */
 
-define(function(require, exports, module) {
-    var View                = require('famous/core/View');
-    var Surface             = require('famous/core/Surface');
-    var StateModifier       = require('famous/modifiers/StateModifier');
-    var Transform           = require('famous/core/Transform');
-    var Draggable           = require('famous/modifiers/Draggable');
-    var GridLayout          = require('famous/views/GridLayout');
-    
-    function QuadrantikView(options) {
+define(function (require, exports, module) {
+    'use strict';
+
+    var View                = require('famous/core/View'),
+        StateModifier       = require('famous/modifiers/StateModifier'),
+        Transform           = require('famous/core/Transform'),
+        Draggable           = require('famous/modifiers/Draggable'),
+        GridLayout          = require('famous/views/GridLayout');
+
+    /**
+     * Quadrantik View lays out 4 renderables in a grid layout and
+     * allows you to move it by dragging the knob, which is placed in the middle of it.
+     * 
+     * @class QuadrantikView
+     * @constructor
+     * @param {Object} [options] Valid JSON object, representing configuration options
+     * @param {Object} [options.transition] Transition options for snapping the knob to corners
+     * @param {Number} [options.transition.duration=400] Duration of the transition in ms
+     * @param {String} [options.transition.curve='easeOut'] Easing curve for the knob snapping
+     * @param {Object} [options.snap] Defines length of steps in pixels the knob will move on X and Y axes
+     * @param {Number} [options.snap.snapX=1] Knob step on X axis
+     * @param {Number} [options.snap.snapY=1] Knob step on Y axis
+     * @param {Number} [options.cornerSnapSize=window.innerHeight*0.2] The side length of a square, which will trigger the knob corner snapping
+     */
+    function QuadrantikView() {
         View.apply(this, arguments);
 
         this.panels = [];
@@ -44,8 +63,18 @@ define(function(require, exports, module) {
 
     QuadrantikView.prototype = Object.create(View.prototype);
     QuadrantikView.prototype.constructor = QuadrantikView;
-    QuadrantikView.prototype.setQuadrant = function(quadrant) {
-        if (this.panels.length===0 || !this.knob) return;
+
+    /**
+     * Shows the specified quadrant in full-screen.
+     *
+     * @method setQuadrant
+     * 
+     * @param {Number} quadrant Quadrant number. Follows quadrants positions of math quadrants in Cartesian plane:
+     *                          row1: 2 1
+     *                          row2: 3 4
+     */
+    QuadrantikView.prototype.setQuadrant = function (quadrant) {
+        if (this.panels.length === 0 || !this.knob) return;
         var w = this._WIDTH / 2;
         var h = this._HEIGHT / 2;
         switch (quadrant) {
@@ -69,7 +98,15 @@ define(function(require, exports, module) {
                 break;
         };
     };
-    QuadrantikView.prototype.sequenceFrom = function(sequence) {
+
+    /**
+     * Feeds the provided array of renderables to the GridLayout and adds it to the context.
+     *
+     * @method sequenceFrom
+     * 
+     * @param  {Array|ViewSequence} sequence Accepts an array of renderables or a ViewSequence
+     */
+    QuadrantikView.prototype.sequenceFrom = function (sequence) {
         var grid = new GridLayout({
             dimensions: [2, 2],
             transition: { duration: 1000, curve: 'easeInOut' }
@@ -84,7 +121,15 @@ define(function(require, exports, module) {
         });
         this.add(this.mod).add(grid);
     };
-    QuadrantikView.prototype.setKnob = function(renderable) {
+
+    /**
+     * Sets a renderable to represent a knob, which a user can drag to move the GridLayout
+     *
+     * @method setKnob
+     * 
+     * @param {Object} renderable A Famo.us renderable, e.g. a surface
+     */
+    QuadrantikView.prototype.setKnob = function (renderable) {
         if (renderable instanceof Object) this.knob = renderable;
         this.draggable = new Draggable({
             snapX: this.options.snap.snapX,
@@ -125,7 +170,7 @@ define(function(require, exports, module) {
         this._eventInput.on('end', _handleEnd);
     };
 
-    function _syncPosition(event) {
+    function _syncPosition() {
         var pos = this.draggable.getPosition();
         this.mod.setTransform(Transform.translate(pos[0], pos[1], 0));
     };
